@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  rfid:
+    image: rayanabft/rfid:latest
+    container_name: rfid
+    restart: always
