@@ -1,4 +1,4 @@
-# MAJ
+# CODE MIS A JOURRRR
 import serial
 import time
 
