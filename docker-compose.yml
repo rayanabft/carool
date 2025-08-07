@@ -4,4 +4,5 @@ services:
   rfid:
     image: rayanabft/rfid:latest
     container_name: rfid
+    privileged: true
     restart: always
