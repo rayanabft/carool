@@ -5,7 +5,7 @@ on:
     branches:
       - main  # ou master, selon ton dépôt
     paths:
-      - test1.py
+      - '**/*.py'
       - Dockerfile
       - docker-compose.yml
 
