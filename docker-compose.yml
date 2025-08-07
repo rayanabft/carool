@@ -1,16 +1,15 @@
-version: '3.8'
-
 services:
   rfid:
     image: rayanabft/rfid:latest
     container_name: rfid
-    privileged: true             # Donne accès à tous les ports /dev (USB, GPIO, etc.)
-    restart: always              # Redémarre automatiquement en cas d’erreur ou reboot
+    restart: always
+    privileged: true  #  Donne un accès complet au matériel
+    network_mode: host  #  Permet l'accès réseau complet (si besoin)
+    volumes:
+      - /dev:/dev         #  Accès à tous les périphériques (USB, GPIO...)
+      - /sys:/sys         #  Pour GPIO et informations système
+      - /run:/run         #  Pour certains services système
     environment:
-      - PYTHONUNBUFFERED=1       # (Optionnel) Pour voir les logs Python en temps réel
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - PYTHONUNBUFFERED=1
+
 
