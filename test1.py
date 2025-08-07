@@ -1,3 +1,4 @@
+# MAJ
 import serial
 import time
 
