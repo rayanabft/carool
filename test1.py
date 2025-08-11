@@ -1,30 +1,40 @@
-import cv2
+ # TEST2
+import serial
 import time
 
-# Ouvrir la camera (index 0 = /dev/video0)
-cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+def parse_tag(frame):
+    if frame[1] == 0x02 and frame[2] == 0x22:  # Notification de tag detecte
+        epc_len = frame[4] - 5  # PL - RSSI(1) - PC(2) - CRC(2)
+        epc = frame[8:8 + epc_len]
+        epc_hex = ''.join(f'{b:02X}' for b in epc)
+        print(f"Tag detecte : {epc_hex}")
+    elif frame[2] == 0xFF:
+        print("Aucun tag detecte ou erreur")
 
-# Regler la resolution
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+def main():
+    # Ouvre le port serie USB (modifie si necessaire)
+    try:
+        ser = serial.Serial('/dev/ttyACM0', baudrate=115200, timeout=0.5)
+    except serial.SerialException:
+        print("Erreur : port serie non detecte. Verifie le branchement.")
+        return
 
-# Desactiver l'auto-exposition (mode manuel)
-# 1.0 = auto, 0.25 = manuel sous OpenCV/V4L2
-cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+    # Commande Single Inventory : BB 00 22 00 00 22 7E
+    inventory_cmd = bytearray([0xBB, 0x00, 0x22, 0x00, 0x00, 0x22, 0x7E])
 
-# Definir une exposition manuelle adaptee
-# Valeur a ajuster selon la luminosite et le driver
-cap.set(cv2.CAP_PROP_EXPOSURE, 100)  # plus haut = plus lumineux
+    print("Lecture RFID en cours... (CTRL+C pour arreter)\n")
 
-# Laisser le temps au capteur de s'adapter
-time.sleep(2)
+    try:
+        while True:
+            ser.write(inventory_cmd)
+            time.sleep(0.01)
+            response = ser.read(64)
+            if len(response) >= 8 and response[0] == 0xBB and response[-1] == 0x7E:
+                parse_tag(response)
+    except KeyboardInterrupt:
+        print("\nArret du script.")
+    finally:
+        ser.close()
 
-# Capturer une image
-ret, frame = cap.read()
-if ret:
-    cv2.imwrite("photo.jpg", frame)
-    print("Photo prise avec succes")
-else:
-    print("Erreur lors de la capture")
-
-cap.release()
+if __name__ == "__main__":
+    main()
